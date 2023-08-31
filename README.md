@@ -3,5 +3,5 @@
 
 A dev environment for [Defold](https://defold.com/) that transpiles TypeScript into lua using [TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua).
 
-Game-Demo: <a href="http://test.krach.ist-im-netz.at/">
+Game-Demo: <a href="http://test.krach.ist-im-netz.at/">Demo</a>
 
