@@ -122,7 +122,6 @@ fixed_update: On the other hand, the fixed_update function is called at regular 
 
 export function fixed_update(this: props, _dt: number): void {
 
-
   // apply gravity
   this.velocity.y = this.velocity.y + this.gravity * _dt;
 
@@ -146,22 +145,23 @@ function handle_obstacle_contact(this: props, normal: vmath.vector3, distance: n
 
   if (distance > 0) {
     // First, project the accumulated correction onto the penetration vector
-    const proj = vmath.project(this.correction, normal * distance as vmath.vector3);
+    const proj = vmath.project(this.correction, (normal * distance) as vmath.vector3);
 
     if(proj < 1) {
       // Only care for projections that does not overshoot.
       const comp = (distance - distance * proj) * normal as vmath.vector3;
 
       // Apply compensation
-      go.set_position(go.get_position() + comp as vmath.vector3);
+      go.set_position((go.get_position() + comp) as vmath.vector3);
 
       // Accumulate correction done
-      this.correction = this.correction + comp as vmath.vector3;
+      this.correction = (this.correction + comp) as vmath.vector3;
     }
   }
 
   // collided with a wall -> stop horizontal movement
   if (math.abs(normal.x) > 0.7) {
+    
     this.wall_contact = true;
     this.velocity.x = 0;
   }
@@ -173,7 +173,7 @@ function handle_obstacle_contact(this: props, normal: vmath.vector3, distance: n
   }
 
   // collided with the ceiling -> stop vertical movement
-  if (normal.y < 0.7) {
+  if (normal.y < -0.7) {
     this.velocity.y = 0;
   }
 
@@ -187,7 +187,7 @@ export function on_message(
   _sender: url
 ): void {
 
-  // check if we received a contact point message
+  // check if we received a contact point messagev
   if(message_id === this.msg_contact_point_response) {
     const message = _message as contact_point_response;
     
@@ -201,7 +201,6 @@ export function on_message(
 }
 
 function jump(this: props) {
-  print('jump. ground contact ? ' + this.ground_contact);
   // only allow jump from ground
   if(this.ground_contact) {
     // set take-off speed
@@ -215,7 +214,6 @@ function jump(this: props) {
 }
 
 function abort_jump(this: props) {
-  print('abort_jump');
   // cut the jump short if we are still going up
   if(this.velocity.y > 0) {
     // scale down the upwards speed
