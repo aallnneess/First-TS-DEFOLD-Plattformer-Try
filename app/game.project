@@ -5,9 +5,10 @@ main_collection = /main/main.collectionc
 shared_state = 1
 
 [display]
-width = 800
-height = 800
+width = 960
+height = 640
 update_frequency = 60
+vsync = 0
 
 [android]
 input_method = HiddenInputField
@@ -17,7 +18,18 @@ title = Plattformer-Demo
 dependencies#0 = https://github.com/ts-defold/defold-lldebugger/archive/extension.zip
 
 [render]
-clear_color_red = 0.19
-clear_color_green = 0.47
-clear_color_blue = 0.78
+clear_color_red = 0.0
+clear_color_green = 0.0
+clear_color_blue = 0.0
+
+[graphics]
+max_debug_vertices = 50000
+
+[input]
+use_accelerometer = 0
+
+[physics]
+use_fixed_timestep = 1
+gravity_y = -1000.0
+scale = 0.01
 
