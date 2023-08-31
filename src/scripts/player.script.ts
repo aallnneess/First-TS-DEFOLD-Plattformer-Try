@@ -1,0 +1,252 @@
+import { contact_point_response } from "../modules/contact_responses/contact_point_response";
+
+interface props {
+  air_acceleration_factor: number;
+  max_speed: number;
+  gravity: number;
+  jump_takeoff_speed: number;
+
+  velocity: vmath.vector3;
+  facing_direction: number;
+  correction: vmath.vector3;
+  ground_contact: boolean;
+  wall_contact: boolean;
+  anim: hash;
+                                        // pre-hashing ids improves performance
+  msg_contact_point_response: hash;
+  msg_animation_done: hash;
+  group_obstacle: hash;
+  input_left: hash;
+  input_right: hash;
+  input_jump: hash;
+  anim_walk: hash;
+  anim_idle: hash;
+  anim_jump: hash;
+  anim_fall: hash;
+}
+
+interface action {
+  value: number,
+  pressed: boolean,
+  released: boolean,
+  repeated: boolean,
+  x: number,
+  y: number,
+  screen_x: number,
+  screen_y: number,
+  dx: number,
+  dy: number,
+  screen_dx: number,
+  screen_dy: number,
+  // touch: list -> https://defold.com/ref/go/#on_input
+}
+
+export function init(this: props): void {
+  print('<Player> init');
+
+  this.air_acceleration_factor = 0.8;
+  this.max_speed = 450;
+  this.gravity = -1900;
+  this.jump_takeoff_speed = 1200;
+
+  this.msg_contact_point_response = hash("contact_point_response");
+  this.msg_animation_done = hash("animation_done");
+  this.group_obstacle = hash("ground");
+  this.input_left = hash("left");
+  this.input_right = hash("right");
+  this.input_jump = hash("jump");
+  this.anim_walk = hash("walk");
+  this.anim_idle = hash("idle");
+  this.anim_jump = hash("jump");
+  this.anim_fall = hash("fall");
+
+  // this lets us handle input in this script
+  msg.post(".", "acquire_input_focus");
+
+  // activate camera attached to the player collection
+	// this will send camera updates to the render script
+	msg.post("#camera", "acquire_camera_focus");
+	msg.post("@render:", "use_camera_projection");
+
+  // initial player velocity
+	this.velocity = vmath.vector3(0, 0, 0);
+	// the direction the player is facing
+	this.facing_direction = 0;
+	// support variable to keep track of collisions and separation
+	this.correction = vmath.vector3();
+
+	// if the player stands on ground or not
+	this.ground_contact = false;
+	// the currently playing animation
+	this.anim = hash('');
+
+}
+
+function play_animation(thisX: props, anim: hash) {
+  // only play animations which are not already playing
+  if(thisX.anim !== anim) {
+    // tell the sprite to play the animation
+    sprite.play_flipbook("#sprite", anim);
+    // remember which animation is playing
+    thisX.anim = anim;
+  }
+
+}
+
+function update_animations(thisX: props) {
+  // make sure the player character faces the right way
+  sprite.set_hflip("#sprite", thisX.facing_direction < 0);
+
+  // make sure the right animation is playing
+  if(thisX.ground_contact) {
+
+    if(thisX.velocity.x === 0) {
+      play_animation(thisX, thisX.anim_idle);
+    }else{
+      play_animation(thisX, thisX.anim_walk);
+    }
+  }else {
+
+    if(thisX.velocity.y > 0) {
+      play_animation(thisX, thisX.anim_jump);
+    }else {
+      play_animation(thisX, thisX.anim_fall);
+    }
+  }
+}
+
+/*
+fixed_update: On the other hand, the fixed_update function is called at regular intervals and is used for updating physics game objects. It is ideal for calculating collisions, movements, or other physics calculations that require a consistent update rate. The fixed_update function is called at a fixed frequency, regardless of the system's performance.
+*/
+
+
+export function fixed_update(this: props, _dt: number): void {
+
+
+  // apply gravity
+  this.velocity.y = this.velocity.y + this.gravity * _dt;
+
+  // move player
+  let pos = go.get_position();
+  pos = pos + this.velocity * _dt as vmath.vector3;
+  go.set_position(pos);
+
+  // update animations based on state (ground, air, move and idle)
+  update_animations(this);
+
+  // reset volatile state
+  this.correction = vmath.vector3();
+  this.ground_contact = false;
+  this.wall_contact = false;
+
+}
+
+// handle_obstacle_contact method....
+function handle_obstacle_contact(thisX: props, normal: vmath.vector3, distance: number) {
+
+  if (distance > 0) {
+    // First, project the accumulated correction onto the penetration vector
+    const proj = vmath.project(thisX.correction, normal * distance as vmath.vector3);
+
+    if(proj < 1) {
+      // Only care for projections that does not overshoot.
+      const comp = (distance - distance * proj) * normal as vmath.vector3;
+
+      // Apply compensation
+      go.set_position(go.get_position() + comp as vmath.vector3);
+
+      // Accumulate correction done
+      thisX.correction = thisX.correction + comp as vmath.vector3;
+    }
+  }
+
+  // collided with a wall -> stop horizontal movement
+  if (math.abs(normal.x) > 0.7) {
+    thisX.wall_contact = true;
+    thisX.velocity.x = 0;
+  }
+
+  // collided with the ground -> stop vertical movement
+  if (normal.y > 0.7) {
+    thisX.ground_contact = true;
+    thisX.velocity.y = 0;
+  }
+
+  // collided with the ceiling -> stop vertical movement
+  if (normal.y < 0.7) {
+    thisX.velocity.y = 0;
+  }
+
+
+}
+
+export function on_message(
+  this: props,
+  message_id: hash,
+  _message: string | contact_point_response,
+  _sender: url
+): void {
+
+  // check if we received a contact point message
+  if(message_id === this.msg_contact_point_response) {
+    const message = _message as contact_point_response;
+    
+    // check that the object is something we consider an obstacle
+    if (message.group === this.group_obstacle) {
+      handle_obstacle_contact(this,message.normal,message.distance);
+    }
+    
+  }
+
+}
+
+function jump(thisX: props) {
+  print('jump. ground contact ? ' + thisX.ground_contact);
+  // only allow jump from ground
+  if(thisX.ground_contact) {
+    // set take-off speed
+    thisX.velocity.y = thisX.jump_takeoff_speed;
+    print('jump. set velocity');
+    // play animation
+    play_animation(thisX, thisX.anim_jump);
+
+    thisX.ground_contact = false;
+  }
+}
+
+function abort_jump(thisX: props) {
+  print('abort_jump');
+  // cut the jump short if we are still going up
+  if(thisX.velocity.y > 0) {
+    // scale down the upwards speed
+    thisX.velocity.y = thisX.velocity.y * 0.5;
+  }
+}
+
+function walk(thisX: props, direction: number) {
+  // only change facing direction if direction is other than 0
+  if(direction !== 0) thisX.facing_direction = direction;
+
+  // update velocity and use different velocity on ground and in air
+  if(thisX.ground_contact) {
+    thisX.velocity.x = thisX.max_speed * direction;
+  }else {
+    // move slower in the air
+    thisX.velocity.x = thisX.max_speed * thisX.air_acceleration_factor * direction;
+  }
+}
+
+export function on_input(this: props, action_id: hash, action: action) {
+
+  if(action_id === this.input_left) {
+    walk(this, -action.value);
+  }else if(action_id === this.input_right) {
+    walk(this, action.value);
+  }else if(action_id === this.input_jump) {
+    if(action.pressed) {
+      jump(this);
+    }else if(action.released) {
+      abort_jump(this);
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "private": true,
+  "name": "plattformer-demo",
+  "version": "0.1.0",
+  "description": "Demo Game",
+  "author": "aallnneess <73443724+aallnneess@users.noreply.github.com>",
+  "keywords": [
+    "typescript",
+    "lua",
+    "defold"
+  ],
+  "engines": {
+    "node": ">=14.17.0"
+  },
+  "scripts": {
+    "resolve": "library resolve",
+    "build": "tstl",
+    "lint": "eslint src",
+    "dev": "tstl --watch"
+  },
+  "devDependencies": {
+    "@ts-defold/library": "^0.1.1",
+    "@ts-defold/tstl-export-as-global": "^1.0.1",
+    "@ts-defold/tstl-userdata-sugar": "^1.0.1",
+    "@ts-defold/types": "^1.2.20",
+    "@typescript-eslint/eslint-plugin": "^5.60.1",
+    "@typescript-eslint/parser": "^5.60.1",
+    "eslint": "^8.43.0",
+    "tstl-trim-extensions": "^1.0.3",
+    "typescript": "~5.1.0",
+    "typescript-to-lua": "~1.16.0",
+    "typescript-tstl-plugin": "^0.3.0"
+  }
+}
