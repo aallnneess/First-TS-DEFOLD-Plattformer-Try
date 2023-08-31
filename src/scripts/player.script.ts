@@ -82,13 +82,13 @@ export function init(this: props): void {
 
 }
 
-function play_animation(thisX: props, anim: hash) {
+function play_animation(this: props, anim: hash) {
   // only play animations which are not already playing
-  if(thisX.anim !== anim) {
+  if(this.anim !== anim) {
     // tell the sprite to play the animation
     sprite.play_flipbook("#sprite", anim);
     // remember which animation is playing
-    thisX.anim = anim;
+    this.anim = anim;
   }
 
 }
@@ -101,16 +101,16 @@ function update_animations(thisX: props) {
   if(thisX.ground_contact) {
 
     if(thisX.velocity.x === 0) {
-      play_animation(thisX, thisX.anim_idle);
+      play_animation.call(thisX, thisX.anim_idle);
     }else{
-      play_animation(thisX, thisX.anim_walk);
+      play_animation.call(thisX, thisX.anim_walk);
     }
   }else {
 
     if(thisX.velocity.y > 0) {
-      play_animation(thisX, thisX.anim_jump);
+      play_animation.call(thisX, thisX.anim_jump);
     }else {
-      play_animation(thisX, thisX.anim_fall);
+      play_animation.call(thisX, thisX.anim_fall);
     }
   }
 }
@@ -142,11 +142,11 @@ export function fixed_update(this: props, _dt: number): void {
 }
 
 // handle_obstacle_contact method....
-function handle_obstacle_contact(thisX: props, normal: vmath.vector3, distance: number) {
+function handle_obstacle_contact(this: props, normal: vmath.vector3, distance: number) {
 
   if (distance > 0) {
     // First, project the accumulated correction onto the penetration vector
-    const proj = vmath.project(thisX.correction, normal * distance as vmath.vector3);
+    const proj = vmath.project(this.correction, normal * distance as vmath.vector3);
 
     if(proj < 1) {
       // Only care for projections that does not overshoot.
@@ -156,25 +156,25 @@ function handle_obstacle_contact(thisX: props, normal: vmath.vector3, distance: 
       go.set_position(go.get_position() + comp as vmath.vector3);
 
       // Accumulate correction done
-      thisX.correction = thisX.correction + comp as vmath.vector3;
+      this.correction = this.correction + comp as vmath.vector3;
     }
   }
 
   // collided with a wall -> stop horizontal movement
   if (math.abs(normal.x) > 0.7) {
-    thisX.wall_contact = true;
-    thisX.velocity.x = 0;
+    this.wall_contact = true;
+    this.velocity.x = 0;
   }
 
   // collided with the ground -> stop vertical movement
   if (normal.y > 0.7) {
-    thisX.ground_contact = true;
-    thisX.velocity.y = 0;
+    this.ground_contact = true;
+    this.velocity.y = 0;
   }
 
   // collided with the ceiling -> stop vertical movement
   if (normal.y < 0.7) {
-    thisX.velocity.y = 0;
+    this.velocity.y = 0;
   }
 
 
@@ -193,60 +193,60 @@ export function on_message(
     
     // check that the object is something we consider an obstacle
     if (message.group === this.group_obstacle) {
-      handle_obstacle_contact(this,message.normal,message.distance);
+      handle_obstacle_contact.call(this,message.normal,message.distance);
     }
     
   }
 
 }
 
-function jump(thisX: props) {
-  print('jump. ground contact ? ' + thisX.ground_contact);
+function jump(this: props) {
+  print('jump. ground contact ? ' + this.ground_contact);
   // only allow jump from ground
-  if(thisX.ground_contact) {
+  if(this.ground_contact) {
     // set take-off speed
-    thisX.velocity.y = thisX.jump_takeoff_speed;
+    this.velocity.y = this.jump_takeoff_speed;
     print('jump. set velocity');
     // play animation
-    play_animation(thisX, thisX.anim_jump);
+    play_animation.call(this, this.anim_jump);
 
-    thisX.ground_contact = false;
+    this.ground_contact = false;
   }
 }
 
-function abort_jump(thisX: props) {
+function abort_jump(this: props) {
   print('abort_jump');
   // cut the jump short if we are still going up
-  if(thisX.velocity.y > 0) {
+  if(this.velocity.y > 0) {
     // scale down the upwards speed
-    thisX.velocity.y = thisX.velocity.y * 0.5;
+    this.velocity.y = this.velocity.y * 0.5;
   }
 }
 
-function walk(thisX: props, direction: number) {
+function walk(this: props, direction: number) {
   // only change facing direction if direction is other than 0
-  if(direction !== 0) thisX.facing_direction = direction;
+  if(direction !== 0) this.facing_direction = direction;
 
   // update velocity and use different velocity on ground and in air
-  if(thisX.ground_contact) {
-    thisX.velocity.x = thisX.max_speed * direction;
+  if(this.ground_contact) {
+    this.velocity.x = this.max_speed * direction;
   }else {
     // move slower in the air
-    thisX.velocity.x = thisX.max_speed * thisX.air_acceleration_factor * direction;
+    this.velocity.x = this.max_speed * this.air_acceleration_factor * direction;
   }
 }
 
 export function on_input(this: props, action_id: hash, action: action) {
 
   if(action_id === this.input_left) {
-    walk(this, -action.value);
+    walk.call(this, -action.value);
   }else if(action_id === this.input_right) {
-    walk(this, action.value);
+    walk.call(this, action.value);
   }else if(action_id === this.input_jump) {
     if(action.pressed) {
-      jump(this);
+      jump.call(this);
     }else if(action.released) {
-      abort_jump(this);
+      abort_jump.call(this);
     }
   }
 }
