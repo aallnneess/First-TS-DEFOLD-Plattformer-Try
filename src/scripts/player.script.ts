@@ -93,24 +93,24 @@ function play_animation(this: props, anim: hash) {
 
 }
 
-function update_animations(thisX: props) {
+function update_animations(this: props) {
   // make sure the player character faces the right way
-  sprite.set_hflip("#sprite", thisX.facing_direction < 0);
+  sprite.set_hflip("#sprite", this.facing_direction < 0);
 
   // make sure the right animation is playing
-  if(thisX.ground_contact) {
+  if(this.ground_contact) {
 
-    if(thisX.velocity.x === 0) {
-      play_animation.call(thisX, thisX.anim_idle);
+    if(this.velocity.x === 0) {
+      play_animation.call(this, this.anim_idle);
     }else{
-      play_animation.call(thisX, thisX.anim_walk);
+      play_animation.call(this, this.anim_walk);
     }
   }else {
 
-    if(thisX.velocity.y > 0) {
-      play_animation.call(thisX, thisX.anim_jump);
+    if(this.velocity.y > 0) {
+      play_animation.call(this, this.anim_jump);
     }else {
-      play_animation.call(thisX, thisX.anim_fall);
+      play_animation.call(this, this.anim_fall);
     }
   }
 }
@@ -132,7 +132,7 @@ export function fixed_update(this: props, _dt: number): void {
   go.set_position(pos);
 
   // update animations based on state (ground, air, move and idle)
-  update_animations(this);
+  update_animations.call(this);
 
   // reset volatile state
   this.correction = vmath.vector3();
