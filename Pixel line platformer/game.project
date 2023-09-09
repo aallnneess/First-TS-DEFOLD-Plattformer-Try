@@ -49,7 +49,11 @@ use_fixed_timestep = 1
 [graphics]
 default_texture_min_filter = nearest
 default_texture_mag_filter = nearest
+verify_graphics_calls = 0
 
 [sprite]
 max_count = 500
+
+[native_extension]
+app_manifest = 
 

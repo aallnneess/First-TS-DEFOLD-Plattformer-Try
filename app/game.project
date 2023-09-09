@@ -24,6 +24,8 @@ clear_color_blue = 0.0
 
 [graphics]
 max_debug_vertices = 50000
+default_texture_min_filter = linear
+default_texture_mag_filter = linear
 
 [input]
 use_accelerometer = 0

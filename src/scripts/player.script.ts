@@ -120,7 +120,7 @@ fixed_update: On the other hand, the fixed_update function is called at regular 
 */
 
 
-export function fixed_update(this: props, _dt: number): void {
+export function update(this: props, _dt: number): void {
 
   // apply gravity
   this.velocity.y = this.velocity.y + this.gravity * _dt;
