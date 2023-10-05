@@ -1,4 +1,6 @@
 import { contact_point_response } from "../modules/contact_responses/contact_point_response";
+import { action } from "../modules/action";
+import {onscreenData} from "../modules/onscreenData";
 
 interface props {
   air_acceleration_factor: number;
@@ -23,22 +25,6 @@ interface props {
   anim_idle: hash;
   anim_jump: hash;
   anim_fall: hash;
-}
-
-interface action {
-  value: number,
-  pressed: boolean,
-  released: boolean,
-  repeated: boolean,
-  x: number,
-  y: number,
-  screen_x: number,
-  screen_y: number,
-  dx: number,
-  dy: number,
-  screen_dx: number,
-  screen_dy: number,
-  // touch: list -> https://defold.com/ref/go/#on_input
 }
 
 export function init(this: props): void {
@@ -80,6 +66,14 @@ export function init(this: props): void {
 	// the currently playing animation
 	this.anim = hash('');
 
+  msg.post("/level#control_gui", "register");
+
+  msg.post("/level#control_gui", "register_button", { id: "left" });
+  msg.post("/level#control_gui", "register_button", { id: "right" });
+  msg.post("/level#control_gui", "register_button", { id: "jump" });
+
+
+
 }
 
 function play_animation(this: props, anim: hash) {
@@ -120,7 +114,7 @@ fixed_update: On the other hand, the fixed_update function is called at regular 
 */
 
 
-export function update(this: props, _dt: number): void {
+export function fixed_update(this: props, _dt: number): void {
 
   // apply gravity
   this.velocity.y = this.velocity.y + this.gravity * _dt;
@@ -137,6 +131,7 @@ export function update(this: props, _dt: number): void {
   this.correction = vmath.vector3();
   this.ground_contact = false;
   this.wall_contact = false;
+  this.velocity.x = 0;
 
 }
 
@@ -183,11 +178,41 @@ function handle_obstacle_contact(this: props, normal: vmath.vector3, distance: n
 export function on_message(
   this: props,
   message_id: hash,
-  _message: string | contact_point_response,
+  _message: string | contact_point_response | onscreenData,
   _sender: url
 ): void {
 
-  // check if we received a contact point messagev
+  if (message_id === hash('onscreen_button')) {
+
+    const message = _message as onscreenData;
+
+    if (message.id === hash('left')) {
+      walk.call(this, -1);
+    }
+
+    if (message.id === hash('right')) {
+      walk.call(this, 1);
+    }
+
+    if (message.id === hash('jump')) {
+      jump.call(this);
+    }
+
+
+
+
+
+  }
+
+
+
+
+
+  if (message_id === hash('update_screen_width')) {
+    print(_message);
+  }
+
+  // check if we received a contact point message
   if(message_id === this.msg_contact_point_response) {
     const message = _message as contact_point_response;
     

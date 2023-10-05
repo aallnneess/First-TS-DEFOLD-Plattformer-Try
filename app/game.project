@@ -16,6 +16,7 @@ input_method = HiddenInputField
 [project]
 title = Plattformer-Demo
 dependencies#0 = https://github.com/ts-defold/defold-lldebugger/archive/extension.zip
+dependencies#1 = https://github.com/britzl/defold-input/archive/master.zip
 
 [render]
 clear_color_red = 0.0
