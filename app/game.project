@@ -8,7 +8,6 @@ shared_state = 1
 width = 960
 height = 640
 update_frequency = 60
-vsync = 0
 
 [android]
 input_method = HiddenInputField
@@ -35,4 +34,7 @@ use_accelerometer = 0
 use_fixed_timestep = 1
 gravity_y = -1000.0
 scale = 0.01
+
+[html5]
+wasm_streaming = 0
 

@@ -68,9 +68,10 @@ export function init(this: props): void {
 
   msg.post("/level#control_gui", "register");
 
-  msg.post("/level#control_gui", "register_button", { id: "left" });
-  msg.post("/level#control_gui", "register_button", { id: "right" });
+
   msg.post("/level#control_gui", "register_button", { id: "jump" });
+  msg.post("/level#control_gui", "register_analog", {id: "analog", radius: 60});
+
 
 
 
@@ -124,8 +125,8 @@ export function fixed_update(this: props, _dt: number): void {
   pos = pos + this.velocity * _dt as vmath.vector3;
   go.set_position(pos);
 
-  // update animations based on state (ground, air, move and idle)
-  update_animations.call(this);
+  // // update animations based on state (ground, air, move and idle)
+  // update_animations.call(this);
 
   // reset volatile state
   this.correction = vmath.vector3();
@@ -134,6 +135,16 @@ export function fixed_update(this: props, _dt: number): void {
   this.velocity.x = 0;
 
 }
+
+
+export function update(this: props, _dt: number): void {
+
+  // update animations based on state (ground, air, move and idle)
+  update_animations.call(this);
+
+}
+
+
 
 // handle_obstacle_contact method....
 function handle_obstacle_contact(this: props, normal: vmath.vector3, distance: number) {
@@ -156,7 +167,7 @@ function handle_obstacle_contact(this: props, normal: vmath.vector3, distance: n
 
   // collided with a wall -> stop horizontal movement
   if (math.abs(normal.x) > 0.7) {
-    
+
     this.wall_contact = true;
     this.velocity.x = 0;
   }
@@ -186,25 +197,19 @@ export function on_message(
 
     const message = _message as onscreenData;
 
-    if (message.id === hash('left')) {
-      walk.call(this, -1);
-    }
-
-    if (message.id === hash('right')) {
-      walk.call(this, 1);
-    }
-
     if (message.id === hash('jump')) {
       jump.call(this);
     }
 
-
-
-
-
   }
 
+  if (message_id === hash('onscreen_analog')) {
 
+    const message = _message as onscreenData;
+
+    walk.call(this,message.x);
+
+  }
 
 
 
